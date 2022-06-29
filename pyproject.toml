@@ -38,6 +38,8 @@ dynamic = ["version"]
 
 dependencies = [
     "typing_extensions >=3.7; python_version<'3.8'",
+    "typer",
+    "cephsum @ git+https://github.com/snafus/cephsum.git@master",
 ]
 
 [project.optional-dependencies]
@@ -93,3 +95,9 @@ messages_control.disable = [
   "line-too-long",
   "wrong-import-position",
 ]
+
+[project.scripts]
+xrdsum = "xrdsum.cli:main"
+
+[tool.flit.external-data]
+directory = "scripts"
