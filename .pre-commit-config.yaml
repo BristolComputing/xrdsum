@@ -96,6 +96,7 @@ repos:
     rev: v0.8.0.4
     hooks:
       - id: shellcheck
+        args: ["--severity=error"]
 
   - repo: local
     hooks:
