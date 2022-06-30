@@ -30,7 +30,7 @@ class Adler32(Checksum):
             value = zlib.adler32(buffer, value)
             bytes_read += len(buffer)
             number_of_buffers_read += 1
-            logger.trace(  # type: ignore [attr-defined]
+            logger.trace(  # type: ignore[attr-defined]
                 "%s: %s %s %s",
                 self.name,
                 self.int_to_hex(value),

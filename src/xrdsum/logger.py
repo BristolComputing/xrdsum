@@ -14,7 +14,7 @@ def trace(
     self: logging.Logger, message: str, *args: list[Any], **kws: dict[str, Any]
 ) -> None:
     if self.isEnabledFor(TRACE):
-        self._log(TRACE, message, args, **kws)  # type: ignore [arg-type]
+        self._log(TRACE, message, args, **kws)  # type: ignore[arg-type]
 
 
-logger.trace = trace  # type: ignore [attr-defined]
+logger.trace = trace  # type: ignore[attr-defined]
