@@ -1,5 +1,9 @@
+"""Implementation of the HDFS backend."""
+# we want non-top-level imports to avoid pulling HDFS dependency early
+# pylint: disable=import-outside-toplevel
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
 from contextlib import closing
 from dataclasses import dataclass
 from typing import IO, Any, Generator
@@ -14,6 +18,8 @@ USER = "xrootd"
 
 @dataclass
 class HDFSSettings:
+    """Settings for the HDFS backend."""
+
     config_file: str = CONF
     user: str = USER
     read_size: int = 64 * 1024 * 1024
@@ -23,7 +29,6 @@ def __get_namenodes() -> list[str]:
     """
     Get the list of namenodes from the HDFS configuration file.
     """
-    import xml.etree.ElementTree as ET
 
     tree = ET.parse(CONF)
     root = tree.getroot()
@@ -44,6 +49,7 @@ def __get_namenodes() -> list[str]:
 
 
 def get_hdfs_client() -> Any:
+    """Retrieving the HDFS client to execute operations on HDFS."""
     import pyhdfs
 
     namenodes = __get_namenodes()
@@ -55,6 +61,7 @@ def get_hdfs_client() -> Any:
 def read_file_in_chunks(
     file_path: str, chunk_size_in_bytes: int
 ) -> Generator[IO[bytes], None, None]:
+    """Reads HDFS file in chunks."""
     client = get_hdfs_client()
     file_status = client.get_file_status(file_path)
     total_size = file_status.length
@@ -65,9 +72,9 @@ def read_file_in_chunks(
         chunk_size_in_bytes,
         total_size,
     )
-    with closing(client.open(file_path)) as f:
+    with closing(client.open(file_path)) as file_handle:
         while True:
-            chunk = f.read(chunk_size_in_bytes)
+            chunk = file_handle.read(chunk_size_in_bytes)
             if chunk:
                 read_bytes += len(chunk)
                 yield chunk
@@ -76,10 +83,13 @@ def read_file_in_chunks(
 
 
 class HDFSBackend(XrdsumBackend):
+    """Implementation of the HDFS backend."""
+
     client: Any
     settings: HDFSSettings
 
     def __init__(self, file_path: str, read_size: int, **kwargs: dict[str, Any]):
+        """HDFS backend requires at least the file_path and read_size"""
         self.client = get_hdfs_client()
         self.file_path = file_path
         self.settings = HDFSSettings(
@@ -94,13 +104,13 @@ class HDFSBackend(XrdsumBackend):
             xattr_value = self.client.get_xattrs(
                 self.file_path, xattr_name=xattr_name, encoding="text"
             )
-        except pyhdfs.HdfsIOException as e:
+        except pyhdfs.HdfsIOException as error:
             # this is OK, just means the xattr does not exist
             log.debug(
                 "No checksum found in metadata (%s) for file %s: %s",
                 xattr_name,
                 self.file_path,
-                e,
+                error,
             )
             return ""
         if xattr_value:
@@ -133,6 +143,7 @@ class HDFSBackend(XrdsumBackend):
 
         xattr_name = f"Xrdsum.{checksum.name}"
         xattr_value = self._get_xattr(xattr_name)
+        xattr_flag = "CREATE"
         if xattr_value is not None and not force:
             log.error(
                 "Checksum already exists in metadata (%s) for file %s",
@@ -142,6 +153,12 @@ class HDFSBackend(XrdsumBackend):
             raise ValueError(
                 f"Xattr {xattr_name} already exists for file {self.file_path}"
             )
+        if xattr_value is not None and force:
+            xattr_flag = "REPLACE"
         self.client.set_xattr(
-            self.file_path, xattr_name, checksum.value, encoding="text"
+            self.file_path,
+            xattr_name,
+            checksum.value,
+            encoding="text",
+            flag=xattr_flag,
         )

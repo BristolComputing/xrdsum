@@ -12,6 +12,8 @@ from ..checksums import Checksum
 
 
 class XrdsumBackend(Protocol):
+    """Base protocol for backends."""
+
     file_path: str
 
     def __init__(
@@ -20,12 +22,12 @@ class XrdsumBackend(Protocol):
         read_size: int,
         **kwargs: dict[str, Any],
     ):
-        pass
+        raise NotImplementedError()
 
     def get_checksum(self, checksum: Checksum) -> Checksum:
         """Try to get checksum info from metadata, otherwise from file"""
-        pass
+        raise NotImplementedError()
 
     def store_checksum(self, checksum: Checksum, force: bool = False) -> None:
         """Store the checksum in the metadata of the file"""
-        pass
+        raise NotImplementedError()

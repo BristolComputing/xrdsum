@@ -1,3 +1,6 @@
+"""Implementation of the CephFS backend."""
+# we want non-top-level imports to avoid pulling CephFS/cephsum dependencies early
+# pylint: disable=import-outside-toplevel
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,6 +16,8 @@ USER = "client.xrootd"
 
 @dataclass
 class CephSettings:
+    """Settings for the CephFS backend."""
+
     config_file: str = CONF
     keyring: str = KEYRING
     user: str = USER
@@ -20,6 +25,7 @@ class CephSettings:
 
 
 def get_ceph_client(settings: CephSettings) -> Any:
+    """Retrieving the CephFS client to execute operations on CephFS."""
     import cephsum
 
     client = cephsum.cephtools.cluster_connect(
@@ -31,12 +37,15 @@ def get_ceph_client(settings: CephSettings) -> Any:
 
 
 class CephFSBackend(XrdsumBackend):
+    """Implementation of the CephFS backend."""
+
     client: Any
     settings: CephSettings
 
     def __init__(
         self, file_path: str, read_size: int, **kwargs: dict[str, Any]
     ) -> None:
+        """CephFS backend requires at least the file_path and read_size"""
         self.file_path = file_path
         self.settings = CephSettings(
             read_size=read_size,

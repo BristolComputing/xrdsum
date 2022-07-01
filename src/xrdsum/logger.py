@@ -1,3 +1,4 @@
+"""Application level logger for xrdsum"""
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,9 @@ TRACE = 5
 def trace(
     self: logging.Logger, message: str, *args: list[Any], **kws: dict[str, Any]
 ) -> None:
+    """Log at TRACE level"""
     if self.isEnabledFor(TRACE):
+        # pylint: disable=protected-access
         self._log(TRACE, message, args, **kws)  # type: ignore[arg-type]
 
 
@@ -25,10 +28,10 @@ class LevelFormatter(logging.Formatter):
 
     def __init__(self, fmt: str, datefmt: str, level_fmts: dict[int, str]):
         self._level_formatters = {}
-        for level, format in level_fmts.items():
+        for level, _format in level_fmts.items():
             # Could optionally support level names too
             self._level_formatters[level] = logging.Formatter(
-                fmt=format, datefmt=datefmt
+                fmt=_format, datefmt=datefmt
             )
         # self._fmt will be the default format
         super().__init__(fmt=fmt, datefmt=datefmt)

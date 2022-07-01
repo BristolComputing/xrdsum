@@ -1,3 +1,4 @@
+"""Entry point for the "xrdsum" command"""
 from __future__ import annotations
 
 import logging
@@ -8,6 +9,7 @@ import typer
 from .backends import FILE_SYSTEMS
 from .checksums import AVAILABLE_CHECKSUM_TYPES, Checksum
 from .logger import console_handler, logger
+from .storage_catalog import resolve_file_path
 
 app = typer.Typer()
 
@@ -17,6 +19,7 @@ def logging_callback(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Debug output"),
 ) -> Any:
+    """Callback to give the --verbose and --debug options to all commands"""
     # verbose is debug
     trace = verbose and debug
     verbose = debug or verbose
@@ -58,21 +61,20 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
     """
     # convert from MB to bytes
     read_size *= 1024 * 1024
+    file_path = resolve_file_path(file_path, storage_catalog=storage_catalog)
     try:
         hdfs = FILE_SYSTEMS[file_system](file_path, read_size)
-    except KeyError:
-        raise typer.Exit(
-            f"Unknown file system: {file_system}",
-            errno=1,
-        )
+    except KeyError as exception:
+        logger.error("Unknown file system %s", file_system)
+        raise typer.Exit(code=1) from exception
     try:
         checksum: Checksum = AVAILABLE_CHECKSUM_TYPES[checksum_type]()
-    except KeyError:
-        raise typer.Exit(
-            f"Unknown checksum type: {checksum_type}",
-            errno=1,
-        )
+    except KeyError as exception:
+        logger.error("Unknown checksum type %s", checksum_type)
+        raise typer.Exit(code=1) from exception
     checksum = hdfs.get_checksum(checksum)
+    if store_result:
+        hdfs.store_checksum(checksum)
     typer.echo(checksum.value)
 
 
@@ -89,4 +91,5 @@ def verify(
 
 
 def main() -> Any:
+    """Entry point for the "xrdsum" command"""
     return app()

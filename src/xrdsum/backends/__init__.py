@@ -1,3 +1,4 @@
+"""The backends module contains the backend classes for the xrdsum program."""
 from __future__ import annotations
 
 from ._base import XrdsumBackend

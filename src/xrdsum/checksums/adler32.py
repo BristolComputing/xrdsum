@@ -1,3 +1,4 @@
+"""Module for calculating Adler32 checksums."""
 from __future__ import annotations
 
 import struct

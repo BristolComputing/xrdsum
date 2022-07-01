@@ -1,3 +1,4 @@
+"""xrdsum.checksums package"""
 from __future__ import annotations
 
 from ._base import Checksum
