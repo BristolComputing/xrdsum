@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Iterable, Protocol
 
 
 class Checksum(Protocol):
@@ -16,5 +16,5 @@ class Checksum(Protocol):
     def hex_to_int(self, value: str) -> int:
         pass
 
-    def calculate(self, file_path: str) -> str:
+    def calculate(self, file_buffer: Iterable[Any]) -> str:
         pass

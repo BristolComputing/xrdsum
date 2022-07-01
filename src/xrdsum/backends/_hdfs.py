@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+from contextlib import closing
+from typing import IO, Any, Generator
+
+from ..checksums import Checksum
+from ..logger import logger as log
+from ._base import XrdsumBackend
+
 CONF = "/etc/hadoop/conf/hdfs-site.xml"
 USER = "xrootd"
 
 
-def get_namenodes() -> list[str]:
+def __get_namenodes() -> list[str]:
     """
     Get the list of namenodes from the HDFS configuration file.
     """
@@ -16,11 +23,113 @@ def get_namenodes() -> list[str]:
 
     for prop in root.findall("property"):
         name = prop.find("name")
-        if not name:
+        if name is None:
             continue
-        if str(name.text).startswith("dfs.namenode.http-address"):
+        name_str = str(name.text)
+
+        if name_str.startswith("dfs.namenode.http-address"):
             value = prop.find("value")
-            if not value:
+            if value is None:
                 continue
             namenodes.append(str(value.text))
     return namenodes
+
+
+def get_hdfs_client() -> Any:
+    import pyhdfs
+
+    namenodes = __get_namenodes()
+    log.debug("Connecting to HDFS via %s", namenodes)
+    client = pyhdfs.HdfsClient(namenodes, user_name=USER)  # can throw AssertionError
+    return client
+
+
+def read_file_in_chunks(
+    file_path: str, chunk_size_in_bytes: int
+) -> Generator[IO[bytes], None, None]:
+    client = get_hdfs_client()
+    file_status = client.get_file_status(file_path)
+    total_size = file_status.length
+    read_bytes = 0
+    log.debug(
+        "Reading %s in chunks of %s bytes (out of %s)",
+        file_path,
+        chunk_size_in_bytes,
+        total_size,
+    )
+    with closing(client.open(file_path)) as f:
+        while True:
+            chunk = f.read(chunk_size_in_bytes)
+            if chunk:
+                read_bytes += len(chunk)
+                yield chunk
+            else:
+                return
+
+
+class HDFSBackend(XrdsumBackend):
+    client: Any
+
+    def __init__(self, file_path: str, read_size: int):
+        self.client = get_hdfs_client()
+        self.file_path = file_path
+        self.read_size = read_size
+
+    def _get_xattr(self, xattr_name: str) -> str:
+        import pyhdfs
+
+        try:
+            xattr_value = self.client.get_xattrs(
+                self.file_path, xattr_name=xattr_name, encoding="text"
+            )
+        except pyhdfs.HdfsIOException as e:
+            # this is OK, just means the xattr does not exist
+            log.debug(
+                "No checksum found in metadata (%s) for file %s: %s",
+                xattr_name,
+                self.file_path,
+                e,
+            )
+            return ""
+        if xattr_value:
+            return str(xattr_value[xattr_name])
+
+        return ""
+
+    def get_checksum(self, checksum: Checksum) -> Checksum:
+        # check if file exists
+        exists = self.client.exists(self.file_path)
+        if not exists:
+            log.error("File %s does not exist", self.file_path)
+            return checksum
+        # try to get from metadata
+        xattr_name = f"user.Xrdsum.{checksum.name}"
+        xattr_value = self._get_xattr(xattr_name)
+        if xattr_value:
+            checksum.value = xattr_value
+            return checksum
+        # did not find it in metadata, try to calculate it
+        checksum.value = checksum.calculate(
+            read_file_in_chunks(self.file_path, self.read_size)
+        )
+
+        return checksum
+
+    def store_checksum(self, checksum: Checksum, force: bool = False) -> None:
+        if not checksum.value:
+            checksum = self.get_checksum(checksum)
+
+        xattr_name = f"Xrdsum.{checksum.name}"
+        xattr_value = self._get_xattr(xattr_name)
+        if xattr_value is not None and not force:
+            log.error(
+                "Checksum already exists in metadata (%s) for file %s",
+                xattr_name,
+                self.file_path,
+            )
+            raise ValueError(
+                f"Xattr {xattr_name} already exists for file {self.file_path}"
+            )
+        self.client.set_xattr(
+            self.file_path, xattr_name, checksum.value, encoding="text"
+        )
