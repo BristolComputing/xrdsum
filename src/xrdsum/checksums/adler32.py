@@ -4,7 +4,7 @@ import struct
 import zlib
 from typing import Any, Iterable
 
-from ..logger import logger
+from ..logger import logger as log
 from ._base import Checksum
 
 
@@ -25,12 +25,11 @@ class Adler32(Checksum):
         value = 1
         bytes_read = 0
         number_of_buffers_read = 0
-
         for buffer in file_buffer:
             value = zlib.adler32(buffer, value)
             bytes_read += len(buffer)
             number_of_buffers_read += 1
-            logger.trace(  # type: ignore[attr-defined]
+            log.trace(  # type: ignore[attr-defined]
                 "%s: %s %s %s",
                 self.name,
                 self.int_to_hex(value),
