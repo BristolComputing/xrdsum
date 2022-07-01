@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import closing
+from dataclasses import dataclass
 from typing import IO, Any, Generator
 
 from ..checksums import Checksum
@@ -9,6 +10,13 @@ from ._base import XrdsumBackend
 
 CONF = "/etc/hadoop/conf/hdfs-site.xml"
 USER = "xrootd"
+
+
+@dataclass
+class HDFSSettings:
+    config_file: str = CONF
+    user: str = USER
+    read_size: int = 64 * 1024 * 1024
 
 
 def __get_namenodes() -> list[str]:
@@ -69,11 +77,15 @@ def read_file_in_chunks(
 
 class HDFSBackend(XrdsumBackend):
     client: Any
+    settings: HDFSSettings
 
-    def __init__(self, file_path: str, read_size: int):
+    def __init__(self, file_path: str, read_size: int, **kwargs: dict[str, Any]):
         self.client = get_hdfs_client()
         self.file_path = file_path
-        self.read_size = read_size
+        self.settings = HDFSSettings(
+            read_size=read_size,
+            **kwargs,  # type: ignore[arg-type]
+        )
 
     def _get_xattr(self, xattr_name: str) -> str:
         import pyhdfs
@@ -110,7 +122,7 @@ class HDFSBackend(XrdsumBackend):
             return checksum
         # did not find it in metadata, try to calculate it
         checksum.value = checksum.calculate(
-            read_file_in_chunks(self.file_path, self.read_size)
+            read_file_in_chunks(self.file_path, self.settings.read_size)
         )
 
         return checksum

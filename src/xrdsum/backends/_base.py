@@ -6,16 +6,19 @@ Backends should implement how
 """
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 from ..checksums import Checksum
 
 
 class XrdsumBackend(Protocol):
+    file_path: str
+
     def __init__(
         self,
         file_path: str,
         read_size: int,
+        **kwargs: dict[str, Any],
     ):
         pass
 
