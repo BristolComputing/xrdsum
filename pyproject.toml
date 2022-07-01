@@ -38,6 +38,7 @@ dynamic = ["version"]
 dependencies = [
     "typer >= 0.4.0",
     "cephsum @ git+https://github.com/snafus/cephsum.git@master",
+    "rich >=10.12.0",
 ]
 
 [project.optional-dependencies]
