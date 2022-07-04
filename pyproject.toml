@@ -58,9 +58,9 @@ hdfs = [
 ]
 # cannot put it on pypi with this.
 # we would need to move cephsum to pypi first.
-cephfs = [
-    "cephsum @ git+https://github.com/snafus/cephsum.git@master",
-]
+# cephfs = [
+#     "cephsum @ git+https://github.com/snafus/cephsum.git@master",
+# ]
 
 [project.urls]
 homepage = "https://github.com/BristolComputing/xrdsum"
