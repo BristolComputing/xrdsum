@@ -52,6 +52,8 @@ logging.TRACE = TRACE  # type: ignore[attr-defined]
 def setup_logger(
     default_level: int = logging.INFO, log_file: str | None = None
 ) -> logging.Logger:
+    """Sets up a logging.Logger with specified log level and log file.
+    If log_file is None, logs to stdout."""
     console_formatter = LevelFormatter(
         fmt="%(asctime)s [%(name)s]  %(levelname)s: %(message)s",
         datefmt=f"[{DEFAULT_DATE_FORMAT} {DEFAULT_TIME_FORMAT}]",
@@ -77,9 +79,11 @@ def setup_logger(
 
     logger = logging.getLogger(APP_LOGGER_NAME)
     logging.getLoggerClass().trace = trace  # type: ignore[attr-defined]
-    logger.addHandler(console_handler)
 
     if not log_file:
+        # only log to console if no log file is specified
+        logger.addHandler(console_handler)
+        logger.setLevel(default_level)
         return logger
 
     logfile_formatter = logging.Formatter(

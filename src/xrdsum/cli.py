@@ -19,9 +19,7 @@ log = logging.getLogger(APP_LOGGER_NAME)
 def logging_callback(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Debug output"),
-    log_file: str = typer.Option(
-        "/var/log/xrood/xrdsum.log", "--log-file", "-l", help="Log file"
-    ),
+    log_file: str = typer.Option(None, "--log-file", "-l", help="Log file"),
 ) -> Any:
     """Callback to give the --verbose and --debug options to all commands"""
     # verbose is debug
