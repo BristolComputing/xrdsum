@@ -17,6 +17,7 @@ log = logging.getLogger(APP_LOGGER_NAME)
 
 CONF = "/etc/hadoop/conf/hdfs-site.xml"
 USER = "xrootd"
+XATTR_TEMPLATE = "user.xrdsum.{}"
 
 
 @dataclass
@@ -128,12 +129,19 @@ class HDFSBackend(XrdsumBackend):
             log.error("File %s does not exist", self.file_path)
             return checksum
         # try to get from metadata
-        xattr_name = f"user.Xrdsum.{checksum.name}"
+        xattr_name = XATTR_TEMPLATE.format(checksum.name)
         xattr_value = self._get_xattr(xattr_name)
         if xattr_value:
+            log.debug(
+                "Found checksum %s in metadata (%s=%s) for file %s",
+                checksum.name,
+                xattr_name,
+                xattr_value,
+                self.file_path,
+            )
             checksum.value = xattr_value
             return checksum
-        # did not find it in metadata, try to calculate it
+        # did not find it in metadata, try calculating it
         checksum.value = checksum.calculate(
             read_file_in_chunks(self.file_path, self.settings.read_size)
         )
@@ -144,19 +152,18 @@ class HDFSBackend(XrdsumBackend):
         if not checksum.value:
             checksum = self.get_checksum(checksum)
 
-        xattr_name = f"Xrdsum.{checksum.name}"
+        xattr_name = XATTR_TEMPLATE.format(checksum.name)
         xattr_value = self._get_xattr(xattr_name)
         xattr_flag = "CREATE"
-        if xattr_value is not None and not force:
-            log.error(
-                "Checksum already exists in metadata (%s) for file %s",
+        if xattr_value and not force:
+            log.debug(
+                "Checksum already exists in metadata (%s=%s) for file %s and force=False - not overwriting",
                 xattr_name,
+                xattr_value,
                 self.file_path,
             )
-            raise ValueError(
-                f"Xattr {xattr_name} already exists for file {self.file_path}"
-            )
-        if xattr_value is not None and force:
+            return
+        if xattr_value and force:
             xattr_flag = "REPLACE"
         self.client.set_xattr(
             self.file_path,
