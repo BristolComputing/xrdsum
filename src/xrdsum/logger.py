@@ -10,6 +10,7 @@ APP_LOGGER_NAME = "xrdsum"
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 DEFAULT_TIME_FORMAT = "%H:%M:%S"
 TRACE = 5
+LOGGER = logging.getLogger(APP_LOGGER_NAME)
 
 
 def trace(
@@ -47,29 +48,46 @@ class LevelFormatter(logging.Formatter):
 logging.addLevelName(TRACE, "TRACE")
 logging.TRACE = TRACE  # type: ignore[attr-defined]
 
-console_formatter = LevelFormatter(
-    fmt="%(asctime)s [%(name)s]  %(levelname)s: %(message)s",
-    datefmt=f"[{DEFAULT_DATE_FORMAT} {DEFAULT_TIME_FORMAT}]",
-    level_fmts={
-        logging.INFO: "%(message)s",
-        logging.WARNING: "[bold dark_orange]%(levelname)s[/]: %(message)s",
-        logging.ERROR: "[bold red]%(levelname)s[/]: %(message)s",
-        logging.DEBUG: "[bold hot_pink]%(levelname)s[/]: %(message)s",
-        logging.TRACE: "[bold hot_pink]%(levelname)s[/]: %(message)s",  # type: ignore[attr-defined]
-        logging.CRITICAL: "[bold blink bright_red]%(levelname)s[/]: %(message)s",
-    },
-)
-console_handler = RichHandler(
-    # rich_tracebacks=True, # does not work with custom formatters
-    markup=True,
-    show_level=False,
-    show_time=False,
-    show_path=False,
-)
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(console_formatter)
-console_handler.formatter = console_formatter
 
-logger = logging.getLogger(APP_LOGGER_NAME)
-logging.getLoggerClass().trace = trace  # type: ignore[attr-defined]
-logger.addHandler(console_handler)
+def setup_logger(
+    default_level: int = logging.INFO, log_file: str | None = None
+) -> logging.Logger:
+    console_formatter = LevelFormatter(
+        fmt="%(asctime)s [%(name)s]  %(levelname)s: %(message)s",
+        datefmt=f"[{DEFAULT_DATE_FORMAT} {DEFAULT_TIME_FORMAT}]",
+        level_fmts={
+            logging.INFO: "%(message)s",
+            logging.WARNING: "[bold dark_orange]%(levelname)s[/]: %(message)s",
+            logging.ERROR: "[bold red]%(levelname)s[/]: %(message)s",
+            logging.DEBUG: "[bold hot_pink]%(levelname)s[/]: %(message)s",
+            logging.TRACE: "[bold hot_pink]%(levelname)s[/]: %(message)s",  # type: ignore[attr-defined]
+            logging.CRITICAL: "[bold blink bright_red]%(levelname)s[/]: %(message)s",
+        },
+    )
+    console_handler = RichHandler(
+        # rich_tracebacks=True, # does not work with custom formatters
+        markup=True,
+        show_level=False,
+        show_time=False,
+        show_path=False,
+    )
+    console_handler.setLevel(default_level)
+    console_handler.setFormatter(console_formatter)
+    console_handler.formatter = console_formatter
+
+    logger = logging.getLogger(APP_LOGGER_NAME)
+    logging.getLoggerClass().trace = trace  # type: ignore[attr-defined]
+    logger.addHandler(console_handler)
+
+    if not log_file:
+        return logger
+
+    logfile_formatter = logging.Formatter(
+        "%(asctime)s [%(name)s]  %(levelname)s: %(message)s"
+    )
+    logfile_handler = logging.FileHandler(log_file)
+    logfile_handler.setLevel(default_level)
+    logfile_handler.setFormatter(logfile_formatter)
+    logger.addHandler(logfile_handler)
+    logger.setLevel(default_level)
+    return logger

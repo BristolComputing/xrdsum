@@ -1,12 +1,15 @@
 """Module for calculating Adler32 checksums."""
 from __future__ import annotations
 
+import logging
 import struct
 import zlib
 from typing import Any, Iterable
 
-from ..logger import logger as log
+from ..logger import APP_LOGGER_NAME
 from ._base import Checksum
+
+log = logging.getLogger(APP_LOGGER_NAME)
 
 
 class Adler32(Checksum):

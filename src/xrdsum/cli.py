@@ -8,16 +8,20 @@ import typer
 
 from .backends import FILE_SYSTEMS
 from .checksums import AVAILABLE_CHECKSUM_TYPES, Checksum
-from .logger import console_handler, logger
+from .logger import APP_LOGGER_NAME, setup_logger
 from .storage_catalog import resolve_file_path
 
 app = typer.Typer()
+log = logging.getLogger(APP_LOGGER_NAME)
 
 
 @app.callback()
 def logging_callback(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Debug output"),
+    log_file: str = typer.Option(
+        "/var/log/xrood/xrdsum.log", "--log-file", "-l", help="Log file"
+    ),
 ) -> Any:
     """Callback to give the --verbose and --debug options to all commands"""
     # verbose is debug
@@ -30,8 +34,8 @@ def logging_callback(
         log_level = logging.DEBUG
     if trace:
         log_level = logging.TRACE  # type: ignore[attr-defined]
-    logger.setLevel(log_level)
-    console_handler.setLevel(log_level)
+    setup_logger(log_level, log_file)
+    log.info("Logging to %s", log_file)
 
 
 @app.command()
@@ -65,12 +69,12 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
     try:
         hdfs = FILE_SYSTEMS[file_system](file_path, read_size)
     except KeyError as exception:
-        logger.error("Unknown file system %s", file_system)
+        log.error("Unknown file system %s", file_system)
         raise typer.Exit(code=1) from exception
     try:
         checksum: Checksum = AVAILABLE_CHECKSUM_TYPES[checksum_type]()
     except KeyError as exception:
-        logger.error("Unknown checksum type %s", checksum_type)
+        log.error("Unknown checksum type %s", checksum_type)
         raise typer.Exit(code=1) from exception
     checksum = hdfs.get_checksum(checksum)
     if store_result:

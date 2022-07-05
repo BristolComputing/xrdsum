@@ -3,14 +3,17 @@
 # pylint: disable=import-outside-toplevel
 from __future__ import annotations
 
+import logging
 import xml.etree.ElementTree as ET
 from contextlib import closing
 from dataclasses import dataclass
 from typing import IO, Any, Generator
 
 from ..checksums import Checksum
-from ..logger import logger as log
+from ..logger import APP_LOGGER_NAME
 from ._base import XrdsumBackend
+
+log = logging.getLogger(APP_LOGGER_NAME)
 
 CONF = "/etc/hadoop/conf/hdfs-site.xml"
 USER = "xrootd"
