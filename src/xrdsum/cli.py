@@ -33,7 +33,7 @@ def logging_callback(
     if trace:
         log_level = logging.TRACE  # type: ignore[attr-defined]
     setup_logger(log_level, log_file)
-    log.info("Logging to %s", log_file)
+    log.debug("Logging to %s", log_file)
 
 
 @app.command()
