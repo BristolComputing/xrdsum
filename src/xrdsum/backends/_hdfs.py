@@ -133,7 +133,8 @@ class HDFSBackend(XrdsumBackend):
         # try to get from metadata
         xattr_name = XATTR_TEMPLATE.format(checksum.name)
         with Timer(
-            text=f"HDFS get_xattr took {{:.3f}}s for {self.file_path}", logger=log.debug
+            text=f"HDFS get_xattr took {{:.3f}}s for {self.file_path}",
+            logger=log.timing,  # type: ignore[attr-defined]
         ):
             xattr_value = self._get_xattr(xattr_name)
         if xattr_value:
@@ -147,9 +148,13 @@ class HDFSBackend(XrdsumBackend):
             checksum.value = xattr_value
             return checksum
         # did not find it in metadata, try calculating it
-        checksum.value = checksum.calculate(
-            read_file_in_chunks(self.file_path, self.settings.read_size)
-        )
+        with Timer(
+            text=f"HDFS checksum calculation took {{:.3f}}s for {self.file_path}",
+            logger=log.timing,  # type: ignore[attr-defined]
+        ):
+            checksum.value = checksum.calculate(
+                read_file_in_chunks(self.file_path, self.settings.read_size)
+            )
 
         return checksum
 

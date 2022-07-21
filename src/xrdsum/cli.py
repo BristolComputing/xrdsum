@@ -75,11 +75,15 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
     except KeyError as exception:
         log.error("Unknown checksum type %s", checksum_type)
         raise typer.Exit(code=1) from exception
-    with Timer(text=f"HDFS checksum took {{:.3f}}s for {file_path}", logger=log.debug):
+    with Timer(
+        text=f"HDFS checksum took {{:.3f}}s for {file_path}",
+        logger=log.timing,  # type: ignore[attr-defined]
+    ):
         checksum = fs.get_checksum(checksum)
     if store_result:
         with Timer(
-            text=f"Storing checksum took {{:.3f}}s for {file_path}", logger=log.debug
+            text=f"Storing checksum took {{:.3f}}s for {file_path}",
+            logger=log.timing,  # type: ignore[attr-defined]
         ):
             fs.store_checksum(checksum)
     typer.echo(checksum.value)

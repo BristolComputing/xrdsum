@@ -10,16 +10,26 @@ APP_LOGGER_NAME = "xrdsum"
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 DEFAULT_TIME_FORMAT = "%H:%M:%S"
 TRACE = 5
+TIMING = 11  # log level for timing, between DEBUG (10) and WARNING (30)
 LOGGER = logging.getLogger(APP_LOGGER_NAME)
 
 
-def trace(
-    self: logging.Logger, message: str, *args: list[Any], **kws: dict[str, Any]
-) -> None:
-    """Log at TRACE level"""
-    if self.isEnabledFor(TRACE):
-        # pylint: disable=protected-access
-        self._log(TRACE, message, args, **kws)  # type: ignore[arg-type]
+def log_function_factory(custom_log_level: int) -> Any:
+    """Factory function for creating a function that logs at a custom level"""
+
+    def log_function(
+        self: logging.Logger, message: str, *args: list[Any], **kws: dict[str, Any]
+    ) -> None:
+        """Log at custom_log_level"""
+        if self.isEnabledFor(custom_log_level):
+            # pylint: disable=protected-access
+            self._log(custom_log_level, message, args, **kws)  # type: ignore[arg-type]
+
+    return log_function
+
+
+trace = log_function_factory(custom_log_level=TRACE)
+timing = log_function_factory(custom_log_level=TIMING)
 
 
 class LevelFormatter(logging.Formatter):
@@ -47,6 +57,8 @@ class LevelFormatter(logging.Formatter):
 # add TRACE log level and function to logger
 logging.addLevelName(TRACE, "TRACE")
 logging.TRACE = TRACE  # type: ignore[attr-defined]
+logging.addLevelName(TIMING, "TIMING")
+logging.TIMING = TIMING  # type: ignore[attr-defined]
 
 
 def setup_logger(
@@ -63,6 +75,7 @@ def setup_logger(
             logging.ERROR: "[bold red]%(levelname)s[/]: %(message)s",
             logging.DEBUG: "[bold hot_pink]%(levelname)s[/]: %(message)s",
             logging.TRACE: "[bold hot_pink]%(levelname)s[/]: %(message)s",  # type: ignore[attr-defined]
+            logging.TIMING: "[bold hot_pink]%(levelname)s[/]: %(message)s",  # type: ignore[attr-defined]
             logging.CRITICAL: "[bold blink bright_red]%(levelname)s[/]: %(message)s",
         },
     )
@@ -79,6 +92,7 @@ def setup_logger(
 
     logger = logging.getLogger(APP_LOGGER_NAME)
     logging.getLoggerClass().trace = trace  # type: ignore[attr-defined]
+    logging.getLoggerClass().timing = timing  # type: ignore[attr-defined]
 
     if not log_file:
         # only log to console if no log file is specified
