@@ -9,6 +9,8 @@ from contextlib import closing
 from dataclasses import dataclass
 from typing import IO, Any, Generator
 
+from codetiming import Timer
+
 from ..checksums import Checksum
 from ..logger import APP_LOGGER_NAME
 from ._base import XrdsumBackend
@@ -130,7 +132,11 @@ class HDFSBackend(XrdsumBackend):
             return checksum
         # try to get from metadata
         xattr_name = XATTR_TEMPLATE.format(checksum.name)
-        xattr_value = self._get_xattr(xattr_name)
+        with Timer(
+            text=f"HDFS get_xattr took {{:.3f}}s for {self.file_path}",
+            logger=log.timing,  # type: ignore[attr-defined]
+        ):
+            xattr_value = self._get_xattr(xattr_name)
         if xattr_value:
             log.debug(
                 "Found checksum %s in metadata (%s=%s) for file %s",
@@ -142,9 +148,13 @@ class HDFSBackend(XrdsumBackend):
             checksum.value = xattr_value
             return checksum
         # did not find it in metadata, try calculating it
-        checksum.value = checksum.calculate(
-            read_file_in_chunks(self.file_path, self.settings.read_size)
-        )
+        with Timer(
+            text=f"HDFS checksum calculation took {{:.3f}}s for {self.file_path}",
+            logger=log.timing,  # type: ignore[attr-defined]
+        ):
+            checksum.value = checksum.calculate(
+                read_file_in_chunks(self.file_path, self.settings.read_size)
+            )
 
         return checksum
 
