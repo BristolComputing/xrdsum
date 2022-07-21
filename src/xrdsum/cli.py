@@ -66,7 +66,7 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
     read_size *= 1024 * 1024
     file_path = resolve_file_path(file_path, storage_catalog=storage_catalog)
     try:
-        hdfs = FILE_SYSTEMS[file_system](file_path, read_size)
+        fs = FILE_SYSTEMS[file_system](file_path, read_size)
     except KeyError as exception:
         log.error("Unknown file system %s", file_system)
         raise typer.Exit(code=1) from exception
@@ -76,12 +76,12 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
         log.error("Unknown checksum type %s", checksum_type)
         raise typer.Exit(code=1) from exception
     with Timer(text=f"HDFS checksum took {{:.3f}}s for {file_path}", logger=log.debug):
-        checksum = hdfs.get_checksum(checksum)
+        checksum = fs.get_checksum(checksum)
     if store_result:
         with Timer(
             text=f"Storing checksum took {{:.3f}}s for {file_path}", logger=log.debug
         ):
-            hdfs.store_checksum(checksum)
+            fs.store_checksum(checksum)
     typer.echo(checksum.value)
 
 
