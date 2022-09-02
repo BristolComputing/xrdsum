@@ -51,7 +51,7 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
 """,
     ),
     storage_catalog: str = typer.Option(
-        default="/etc/xrootd/storage.xml",
+        default="cms|/etc/xrootd/storage.xml?direct",
         help="Path to the CMS storage catalog",
     ),
     file_system: str = typer.Option(
