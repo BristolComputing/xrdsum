@@ -1,8 +1,9 @@
-# implementation of the Compact Muon Solenoid (CMS) file catalog lookup
+"""Implementation of the Compact Muon Solenoid (CMS) file catalog lookup (storage.xml) """
 from __future__ import annotations
 
 import re
 from dataclasses import field
+from xml.dom.minidom import parse as parse_xml
 
 from ._base import StorageCatalog
 
@@ -25,10 +26,9 @@ class CMSStorageCatalog(StorageCatalog):
 
     def __read_config(self) -> list[tuple[re.Pattern[str], str]]:
         """Reads the CMS storage catalog"""
-        from xml.dom.minidom import parse
 
         cms_rules: list[tuple[re.Pattern[str], str]] = []
-        with parse(self.config) as dom:
+        with parse_xml(self.config) as dom:
             rules = dom.getElementsByTagName("lfn-to-pfn")
             for rule in rules:
                 if rule.getAttribute("protocol") != self.protocol:
