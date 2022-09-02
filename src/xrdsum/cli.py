@@ -7,6 +7,7 @@ from typing import Any
 import typer
 from codetiming import Timer
 
+from . import __version__
 from .backends import FILE_SYSTEMS
 from .checksums import AVAILABLE_CHECKSUM_TYPES, Checksum
 from .logger import APP_LOGGER_NAME, setup_logger
@@ -99,6 +100,12 @@ def verify(
     Check if a file has the correct checksum.
     """
     raise NotImplementedError()
+
+
+@app.command()
+def version() -> None:
+    """Print the version number"""
+    typer.echo(__version__)
 
 
 def main() -> Any:
