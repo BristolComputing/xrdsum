@@ -37,6 +37,7 @@ dynamic = ["version"]
 
 dependencies = [
     "codetiming",
+    "crc32c",
     "typer >= 0.4.0",
     "rich >=10.12.0",
 ]
