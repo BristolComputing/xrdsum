@@ -8,13 +8,31 @@ import typer
 from codetiming import Timer
 
 from . import __version__
-from .backends import FILE_SYSTEMS
+from .backends import FILE_SYSTEMS, XrdsumBackend
 from .checksums import AVAILABLE_CHECKSUM_TYPES, Checksum
 from .logger import APP_LOGGER_NAME, TRACE, get_logger
 from .storage_catalog import resolve_file_path
 
 app = typer.Typer()
 log = get_logger(APP_LOGGER_NAME)
+
+
+def get_file_system(file_path: str, file_system: str, read_size: int) -> XrdsumBackend:
+    try:
+        fs_handle = FILE_SYSTEMS[file_system](file_path, read_size)
+    except KeyError as exception:
+        log.error("Unknown file system %s", file_system)
+        raise typer.Exit(code=1) from exception
+    return fs_handle
+
+
+def get_checksum(checksum_type: str) -> Checksum:
+    try:
+        checksum: Checksum = AVAILABLE_CHECKSUM_TYPES[checksum_type]()
+    except KeyError as exception:
+        log.error("Unknown checksum type %s", checksum_type)
+        raise typer.Exit(code=1) from exception
+    return checksum
 
 
 @app.callback()
@@ -66,16 +84,8 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
     # convert from MB to bytes
     read_size *= 1024 * 1024
     file_path = resolve_file_path(file_path, storage_catalog=storage_catalog)
-    try:
-        fs_handle = FILE_SYSTEMS[file_system](file_path, read_size)
-    except KeyError as exception:
-        log.error("Unknown file system %s", file_system)
-        raise typer.Exit(code=1) from exception
-    try:
-        checksum: Checksum = AVAILABLE_CHECKSUM_TYPES[checksum_type]()
-    except KeyError as exception:
-        log.error("Unknown checksum type %s", checksum_type)
-        raise typer.Exit(code=1) from exception
+    fs_handle = get_file_system(file_path, file_system, read_size)
+    checksum = get_checksum(checksum_type)
     with Timer(
         text=f"HDFS checksum took {{:.3f}}s for {file_path}",
         logger=log.timing,
@@ -88,18 +98,6 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
         ):
             fs_handle.store_checksum(checksum)
     typer.echo(checksum.value)
-
-
-@app.command()
-def verify(
-    file_path: str,
-    checksum_value: str,
-    checksum_type: str = "adler32",
-) -> None:
-    """
-    Check if a file has the correct checksum.
-    """
-    raise NotImplementedError()
 
 
 @app.command()
