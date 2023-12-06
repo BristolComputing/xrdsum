@@ -3,7 +3,6 @@
 # pylint: disable=import-outside-toplevel
 from __future__ import annotations
 
-import logging
 import xml.etree.ElementTree as ET
 from contextlib import closing
 from dataclasses import dataclass
@@ -12,10 +11,10 @@ from typing import IO, Any, Generator
 from codetiming import Timer
 
 from ..checksums import Checksum
-from ..logger import APP_LOGGER_NAME
+from ..logger import APP_LOGGER_NAME, get_logger
 from ._base import XrdsumBackend
 
-log = logging.getLogger(APP_LOGGER_NAME)
+log = get_logger(APP_LOGGER_NAME)
 
 CONF = "/etc/hadoop/conf/hdfs-site.xml"
 USER = "xrootd"
@@ -134,7 +133,7 @@ class HDFSBackend(XrdsumBackend):
         xattr_name = XATTR_TEMPLATE.format(checksum.name)
         with Timer(
             text=f"HDFS get_xattr took {{:.3f}}s for {self.file_path}",
-            logger=log.timing,  # type: ignore[attr-defined]
+            logger=log.timing,
         ):
             xattr_value = self._get_xattr(xattr_name)
         if xattr_value:
@@ -150,7 +149,7 @@ class HDFSBackend(XrdsumBackend):
         # did not find it in metadata, try calculating it
         with Timer(
             text=f"HDFS checksum calculation took {{:.3f}}s for {self.file_path}",
-            logger=log.timing,  # type: ignore[attr-defined]
+            logger=log.timing,
         ):
             checksum.value = checksum.calculate(
                 read_file_in_chunks(self.file_path, self.settings.read_size)

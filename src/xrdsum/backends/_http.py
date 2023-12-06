@@ -57,7 +57,7 @@ class HttpBackend(XrdsumBackend):
         log.trace(
             "Calling %s.store_checksum(%s, %s)",
             self.__class__.__name__,
-            checksum,
+            checksum.name,
             force,
         )
         log.debug("No store_checksum available for %s", self.__class__.__name__)

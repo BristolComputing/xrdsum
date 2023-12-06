@@ -1,15 +1,14 @@
 """Module for calculating Adler32 checksums."""
 from __future__ import annotations
 
-import logging
 import struct
 import zlib
 from typing import Any, Iterable
 
-from ..logger import APP_LOGGER_NAME
+from ..logger import APP_LOGGER_NAME, get_logger
 from ._base import Checksum
 
-log = logging.getLogger(APP_LOGGER_NAME)
+log = get_logger(APP_LOGGER_NAME)
 
 
 class Adler32(Checksum):
@@ -33,7 +32,7 @@ class Adler32(Checksum):
             value = zlib.adler32(buffer, value)
             bytes_read += len(buffer)
             number_of_buffers_read += 1
-            log.trace(  # type: ignore[attr-defined]
+            log.trace(
                 "%s: %s %s %s",
                 self.name,
                 self.int_to_hex(value),

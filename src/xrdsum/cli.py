@@ -10,11 +10,11 @@ from codetiming import Timer
 from . import __version__
 from .backends import FILE_SYSTEMS
 from .checksums import AVAILABLE_CHECKSUM_TYPES, Checksum
-from .logger import APP_LOGGER_NAME, setup_logger
+from .logger import APP_LOGGER_NAME, TRACE, get_logger
 from .storage_catalog import resolve_file_path
 
 app = typer.Typer()
-log = logging.getLogger(APP_LOGGER_NAME)
+log = get_logger(APP_LOGGER_NAME)
 
 
 @app.callback()
@@ -33,8 +33,8 @@ def logging_callback(
     if debug:
         log_level = logging.DEBUG
     if trace:
-        log_level = logging.TRACE  # type: ignore[attr-defined]
-    setup_logger(log_level, log_file)
+        log_level = TRACE
+    get_logger(APP_LOGGER_NAME, log_level, log_file)
     log.debug("Logging to %s", log_file)
 
 
@@ -78,13 +78,13 @@ Smaller values will use less memory, larger sizes may have benefits in IO perfor
         raise typer.Exit(code=1) from exception
     with Timer(
         text=f"HDFS checksum took {{:.3f}}s for {file_path}",
-        logger=log.timing,  # type: ignore[attr-defined]
+        logger=log.timing,
     ):
         checksum = fs_handle.get_checksum(checksum)
     if store_result:
         with Timer(
             text=f"Storing checksum took {{:.3f}}s for {file_path}",
-            logger=log.timing,  # type: ignore[attr-defined]
+            logger=log.timing,
         ):
             fs_handle.store_checksum(checksum)
     typer.echo(checksum.value)

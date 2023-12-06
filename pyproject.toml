@@ -37,6 +37,7 @@ dynamic = ["version"]
 
 dependencies = [
     "codetiming",
+    "fasthep-logging >= 0.1.1",
     "typer >= 0.4.0",
     "requests",
     "rich >=10.12.0",
@@ -101,6 +102,10 @@ show_error_codes = true
 
 [[tool.mypy.overrides]]
 module = "typer.*"
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = "xrdsum.*"
 implicit_reexport = true
 
 [tool.isort]
