@@ -26,14 +26,13 @@ class CephSettings:
 
 def get_ceph_client(settings: CephSettings) -> Any:
     """Retrieving the CephFS client to execute operations on CephFS."""
-    import cephsum  # pylint: disable=import-error
+    import cephsum  # pylint: disable=import-error # type: ignore-imports
 
-    client = cephsum.cephtools.cluster_connect(
+    return cephsum.cephtools.cluster_connect(
         conffile=settings.config_file,
         keyring=settings.keyring,
         name=settings.user,
     )
-    return client
 
 
 class CephFSBackend(XrdsumBackend):

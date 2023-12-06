@@ -6,10 +6,9 @@ from typing import Any
 
 import requests
 from codetiming import Timer
-from fasthep_logging import get_logger
 
 from ..checksums import Checksum
-from ..logger import APP_LOGGER_NAME
+from ..logger import APP_LOGGER_NAME, get_logger
 from ._base import XrdsumBackend
 
 log = get_logger(APP_LOGGER_NAME)

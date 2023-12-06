@@ -18,9 +18,8 @@ def resolve_file_path(file_path: str, storage_catalog: str) -> str:
     # e.g. cms|/etc/xrootd/storage.xml?direct
     experiment, storage_catalog = storage_catalog.split("|", maxsplit=1)
     if experiment not in AVAILABLE_STORAGE_CATALOGS:
-        raise ValueError(
-            f"Unknown storage catalog {experiment}. Available: {AVAILABLE_STORAGE_CATALOGS.keys()}"
-        )
+        msg = f"Unknown storage catalog {experiment}. Available: {AVAILABLE_STORAGE_CATALOGS.keys()}"
+        raise ValueError(msg)
 
     protocol = None
     if "?" in storage_catalog:

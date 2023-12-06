@@ -57,7 +57,12 @@ repos:
         files: src|tests
         args: []
         additional_dependencies:
+          - codetiming
+          - fasthep_logging
+          - pyhdfs
           - pytest
+          - typer
+          - types-requests
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.2.6"
