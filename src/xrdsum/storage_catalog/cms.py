@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import re
-from dataclasses import field
+from dataclasses import dataclass, field
 from xml.dom.minidom import parse as parse_xml
 
 from ._base import StorageCatalog
 
 
+@dataclass
 class CMSStorageCatalog(StorageCatalog):
     """CMS file catalog lookup"""
 
