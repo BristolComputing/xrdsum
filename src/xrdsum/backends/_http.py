@@ -45,7 +45,7 @@ class HttpBackend(XrdsumBackend):
             text=f"HTTP checksum retrieval took {{:.3f}}s for {self.file_path}",
             logger=log.timing,
         ):
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=60 * 5)
         response.raise_for_status()  # This will raise an exception for HTTP errors
 
         # Assuming the response is a plain text with the checksum
