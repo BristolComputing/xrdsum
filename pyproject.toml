@@ -101,11 +101,10 @@ strict_equality = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = "typer.*"
-implicit_reexport = true
-
-[[tool.mypy.overrides]]
-module = "xrdsum.*"
+module = [
+    "typer.*",
+    "xrdsum.*",
+]
 implicit_reexport = true
 
 [tool.isort]
