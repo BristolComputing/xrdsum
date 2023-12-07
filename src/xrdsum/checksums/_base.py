@@ -1,7 +1,8 @@
 """Definition of the Checksum protocol."""
 from __future__ import annotations
 
-from typing import Any, Iterable, Protocol
+from collections.abc import Iterable
+from typing import Any, Protocol
 
 
 class Checksum(Protocol):

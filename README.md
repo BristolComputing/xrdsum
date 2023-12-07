@@ -72,7 +72,7 @@ Example:
 ### xrootd config
 
 ```
-# ensure cksum adler32 is included in the tpc directive, in order to caclulate by default on transfer
+# ensure cksum adler32 is included in the tpc directive, in order to calculate by default on transfer
 ofs.tpc cksum adler32 fcreds ?gsi =X509_USER_PROXY autorm xfr 40 pgm /etc/xrootd/xrdcp-tpc.sh
 
 # add this line to trigger external checksum calculation. Would be overwritten by other xrootd.chksum lines

@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from collections.abc import Generator
 from contextlib import closing
 from dataclasses import dataclass
-from typing import IO, Any, Generator
+from typing import IO, Any
 
 from codetiming import Timer
 
@@ -59,8 +60,7 @@ def get_hdfs_client() -> Any:
 
     namenodes = __get_namenodes()
     log.debug("Connecting to HDFS via %s", namenodes)
-    client = pyhdfs.HdfsClient(namenodes, user_name=USER)  # can throw AssertionError
-    return client
+    return pyhdfs.HdfsClient(namenodes, user_name=USER)
 
 
 def read_file_in_chunks(

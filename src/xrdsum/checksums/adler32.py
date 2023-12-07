@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import struct
 import zlib
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from ..logger import APP_LOGGER_NAME, get_logger
 from ._base import Checksum
