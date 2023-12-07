@@ -15,6 +15,10 @@ def get_logger(
     default_level: int = logging.INFO,
     log_file: str | None = None,
 ) -> FASTHEPLogger:
+    """Wrapper for fasthep_logging.get_logger.
+    Can be removed one issue
+    https://github.com/FAST-HEP/fasthep-logging/issues/11
+    is solved."""
     flogger(logger_name, default_level, log_file)
     return FASTHEPLogger(logger_name, default_level)
 

@@ -18,6 +18,7 @@ log = get_logger(APP_LOGGER_NAME)
 
 
 def get_file_system(file_path: str, file_system: str, read_size: int) -> XrdsumBackend:
+    """Get the file system backend for the given file system"""
     try:
         fs_handle = FILE_SYSTEMS[file_system](file_path, read_size)
     except KeyError as exception:
@@ -27,6 +28,7 @@ def get_file_system(file_path: str, file_system: str, read_size: int) -> XrdsumB
 
 
 def get_checksum(checksum_type: str) -> Checksum:
+    """Get the checksum object for the given checksum type"""
     try:
         checksum: Checksum = AVAILABLE_CHECKSUM_TYPES[checksum_type]()
     except KeyError as exception:
