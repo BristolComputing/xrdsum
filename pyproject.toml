@@ -103,7 +103,7 @@ strict_equality = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = ["typer.*", "xrdsum.*"]
+module = ["typer.*", "xrdsum.*", "xattr.*"]
 implicit_reexport = true
 
 [[tool.mypy.overrides]]
