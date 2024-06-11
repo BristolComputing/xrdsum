@@ -37,6 +37,7 @@ dependencies = [
     "typer >= 0.4.0",
     "requests",
     "rich >=10.12.0",
+    "xattr>=0.10.1",
 ]
 
 [project.optional-dependencies]
@@ -49,7 +50,6 @@ docs = [
     "sphinx_copybutton",
 ]
 hdfs = ["pyhdfs>=0.3.1"]
-posix = ["xattr>=0.10.1"]
 
 # cannot put it on pypi with this.
 # we would need to move cephsum to pypi first.
