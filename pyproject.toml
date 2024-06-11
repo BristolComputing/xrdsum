@@ -49,6 +49,8 @@ docs = [
     "sphinx_copybutton",
 ]
 hdfs = ["pyhdfs>=0.3.1"]
+posix = ["xattr>=0.10.1"]
+
 # cannot put it on pypi with this.
 # we would need to move cephsum to pypi first.
 # cephfs = [
