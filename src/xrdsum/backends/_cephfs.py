@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from ..checksums import Checksum
@@ -12,6 +13,7 @@ from ._base import XrdsumBackend
 CONF = "/etc/ceph/ceph.conf"
 KEYRING = "/etc/ceph/ceph.client.xrootd.keyring"
 USER = "client.xrootd"
+XATTR_TEMPLATE = "user.xrdsum.{}"
 
 
 @dataclass
@@ -26,13 +28,28 @@ class CephSettings:
 
 def get_ceph_client(settings: CephSettings) -> Any:
     """Retrieving the CephFS client to execute operations on CephFS."""
-    import cephsum  # pylint: disable=import-error # type: ignore-imports
+    import rados  # pylint: disable=import-error # type: ignore[import-not-found]
 
-    return cephsum.cephtools.cluster_connect(
-        conffile=settings.config_file,
-        keyring=settings.keyring,
-        name=settings.user,
-    )
+    try:
+        client = rados.Rados(
+            conffile=settings.config_file,
+            conf={"keyring": settings.keyring},
+            name=settings.user,
+        )
+        client.connect()
+    except rados.Error as exc:
+        msg = "Failed to connect to Ceph cluster"
+        raise RuntimeError(msg) from exc
+    return client
+
+
+def path_to_oid(path: str) -> str:
+    """Convert a path to an object ID."""
+    # 1. get the inode from the path
+    # 2. Convert the inode to hex and add the chunk0
+    # 3. return the oid
+    inode = Path(path).stat().st_ino
+    return f"{inode:x}.{0:08x}"
 
 
 class CephFSBackend(XrdsumBackend):
@@ -50,6 +67,7 @@ class CephFSBackend(XrdsumBackend):
             read_size=read_size,
             **kwargs,  # type: ignore[arg-type]
         )
+        self.client = get_ceph_client(self.settings)
 
     def get_checksum(self, checksum: Checksum) -> Checksum:
         raise NotImplementedError()

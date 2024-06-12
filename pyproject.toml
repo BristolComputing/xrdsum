@@ -107,7 +107,7 @@ module = ["typer.*", "xrdsum.*", "xattr.*"]
 implicit_reexport = true
 
 [[tool.mypy.overrides]]
-module = "cephsum.*"
+module = ["cephsum.*", "rados.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
