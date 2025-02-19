@@ -33,6 +33,7 @@ dynamic = ["version"]
 
 dependencies = [
     "codetiming",
+    "crc32c",
     "fasthep-logging >= 0.1.1",
     "typer >= 0.4.0",
     "requests",

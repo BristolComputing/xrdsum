@@ -1,11 +1,13 @@
 """Definition of the Checksum protocol."""
+
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Any, Protocol
+from typing import Any
 
 
-class Checksum(Protocol):
+class Checksum(ABC):
     """Base protocol for checksum implementations."""
 
     name: str = "Unknown"
@@ -13,14 +15,7 @@ class Checksum(Protocol):
     bytes_read: int = 0
     number_of_buffers_read: int = 0
 
-    def int_to_hex(self, value: int) -> str:
-        """Converts integer to hex representation"""
-        raise NotImplementedError()
-
-    def hex_to_int(self, value: str) -> int:
-        """Converts hex representation to integer"""
-        raise NotImplementedError()
-
+    @abstractmethod
     def calculate(self, file_buffer: Iterable[Any]) -> str:
         """Calculates the checksum"""
         raise NotImplementedError()
