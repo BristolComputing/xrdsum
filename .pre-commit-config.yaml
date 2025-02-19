@@ -58,6 +58,7 @@ repos:
         args: []
         additional_dependencies:
           - codetiming
+          - crc32c
           - fasthep_logging
           - pyhdfs
           - pytest
