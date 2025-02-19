@@ -1,3 +1,4 @@
+"""Module for calculating CRC32C checksums."""
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -12,6 +13,8 @@ log = get_logger(APP_LOGGER_NAME)
 
 
 class CRC32C(Checksum):
+    """CRC32C checksum implementation"""
+
     name: str = "crc32c"
 
     def calculate(self, file_buffer: Iterable[Any]) -> str:

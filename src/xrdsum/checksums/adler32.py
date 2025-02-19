@@ -1,4 +1,5 @@
 """Module for calculating Adler32 checksums."""
+
 from __future__ import annotations
 
 import struct
@@ -18,12 +19,10 @@ class Adler32(Checksum):
 
     name: str = "adler32"
 
-    def int_to_hex(self, value: int) -> str:
+    def hexdigest(self, value: int) -> str:
+        """Converts an integer to a hex string"""
         # return hex(value)[2:]
         return "".join([f"{x:02x}" for x in struct.pack(">I", value)]).lower()
-
-    def hex_to_int(self, value: str) -> int:
-        return int(value, 16)
 
     def calculate(self, file_buffer: Iterable[Any]) -> str:
         value = 1
@@ -36,12 +35,12 @@ class Adler32(Checksum):
             log.trace(
                 "%s: %s %s %s",
                 self.name,
-                self.int_to_hex(value),
+                self.hexdigest(value),
                 len(buffer),
                 bytes_read,
             )
 
-        self.value = self.int_to_hex(value)
+        self.value = self.hexdigest(value)
         self.bytes_read = bytes_read
         self.number_of_buffers_read = number_of_buffers_read
 
